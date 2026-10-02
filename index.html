@@ -180,7 +180,6 @@
 
         .sub-page:hover::before { transform: scaleY(1); }
 
-        /* Кнопка "Прикол" */
         .fun-button-wrap {
             margin-top: 60px;
             text-align: center;
@@ -243,7 +242,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Модальные окна */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -309,20 +307,39 @@
 
         .modal-body { padding: 30px; }
 
-        /* Видео */
+        /* Видео — с fallback для старых браузеров */
         .video-wrap {
             position: relative;
             width: 100%;
-            aspect-ratio: 16 / 9;
             background: #000;
             border-radius: 12px;
             overflow: hidden;
+            padding-top: 56.25%; /* 16:9 */
         }
 
         .video-wrap iframe {
+            position: absolute;
+            top: 0; left: 0;
             width: 100%;
             height: 100%;
             border: none;
+        }
+
+        .video-fallback {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            background: #111;
+            text-align: center;
+            padding: 20px;
+            font-size: 1em;
+            line-height: 1.5;
+            z-index: 1;
+            pointer-events: none;
         }
 
         .stats {
@@ -675,7 +692,6 @@
         </div>
     </div>
 
-    <!-- КНОПКА "ПРИКОЛ" -->
     <div class="fun-button-wrap">
         <button class="fun-button" onclick="openFun()">🎉 Прикол 🎉</button>
     </div>
@@ -775,6 +791,10 @@
             </div>
             <div class="modal-body">
                 <div class="video-wrap">
+                    <div class="video-fallback" id="funFallback">
+                        Загрузка видео…<br>
+                        Если видео не появилось, значит оно недоступно.
+                    </div>
                     <iframe id="funVideo" src="" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
                 </div>
             </div>
@@ -783,7 +803,7 @@
 
     <!-- ЛАЙТБОКС -->
     <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <button class="lightbox-close" onclick="event.stopPropagation(); closeLightbox();">✕</button>
         <img id="lightboxImg" src="" alt="Фото" onclick="event.stopPropagation()">
     </div>
 
@@ -887,10 +907,19 @@
             const grid = document.getElementById('galleryGrid');
             grid.innerHTML = '';
             photos.forEach(photo => {
+                if (!photo || !photo.id) return; // защита от битых данных
                 const item = document.createElement('div');
                 item.className = 'gallery-item';
                 item.onclick = () => openLightbox(getPhotoUrl(photo.id, 1600));
-                item.innerHTML = `<img src="${getPhotoUrl(photo.id, 600)}" alt="Фото" loading="lazy">`;
+                const img = document.createElement('img');
+                img.src = getPhotoUrl(photo.id, 600);
+                img.alt = 'Фото';
+                img.loading = 'lazy';
+                img.onerror = () => {
+                    item.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#888;font-size:0.9em;text-align:center;padding:10px;">Фото недоступно</div>';
+                    item.onclick = null;
+                };
+                item.appendChild(img);
                 grid.appendChild(item);
             });
         }
@@ -903,6 +932,7 @@
 
         function closeLightbox() {
             document.getElementById('lightbox').classList.remove('active');
+            document.getElementById('lightboxImg').src = '';
             document.body.style.overflow = '';
         }
 
@@ -933,16 +963,29 @@
         // ========== ПРИКОЛ (ВИДЕО) ==========
         function openFun() {
             const iframe = document.getElementById('funVideo');
-            // Ссылка на видео VK: video-127960182_456239022
-            // ID: -127960182, video: 456239022
+            const fallback = document.getElementById('funFallback');
+
+            // Показываем fallback, пока видео грузится
+            fallback.style.display = 'flex';
             iframe.src = 'https://vk.com/video_ext.php?oid=-127960182&id=456239022&hd=2&autoplay=1';
+
+            // Прячем fallback, когда видео загрузилось
+            iframe.onload = () => { fallback.style.display = 'none'; };
+
+            // Если через 8 сек видео не загрузилось — оставляем подсказку
+            clearTimeout(window._funTimer);
+            window._funTimer = setTimeout(() => {
+                fallback.style.display = 'flex';
+            }, 8000);
+
             document.getElementById('funModal').classList.add('active');
             document.body.style.overflow = 'hidden';
         }
 
         function closeFun() {
             document.getElementById('funModal').classList.remove('active');
-            document.getElementById('funVideo').src = ''; // останавливаем видео
+            document.getElementById('funVideo').src = '';
+            clearTimeout(window._funTimer);
             document.body.style.overflow = '';
         }
 
@@ -967,7 +1010,10 @@
                     m.classList.remove('active');
                 });
                 document.getElementById('lightbox').classList.remove('active');
-                document.getElementById('funVideo').src = '';
+                document.getElementById('lightboxImg').src = '';
+                const funVideo = document.getElementById('funVideo');
+                if (funVideo) funVideo.src = '';
+                clearTimeout(window._funTimer);
                 document.body.style.overflow = '';
             }
         });
