@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Наш класс</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 50px 20px;
+            color: #333;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 50px;
+            color: white;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: 800;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+        }
+
+        .header .class-badge {
+            font-size: 1.8em;
+            font-weight: 700;
+            background: #ffd700;
+            color: #333;
+            display: inline-block;
+            padding: 5px 30px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .graph {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 1100px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .main-node {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px 50px;
+            border-radius: 15px;
+            font-size: 1.4em;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(245, 87, 108, 0.4);
+            position: relative;
+            z-index: 2;
+            letter-spacing: 1px;
+            transition: transform 0.3s;
+        }
+
+        .main-node:hover { transform: scale(1.05); }
+
+        .connector-vertical {
+            width: 3px;
+            height: 40px;
+            background: rgba(255,255,255,0.7);
+        }
+
+        .connector-horizontal {
+            width: 340px;
+            height: 3px;
+            background: rgba(255,255,255,0.7);
+            position: relative;
+        }
+
+        .connector-horizontal::before,
+        .connector-horizontal::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 3px;
+            height: 40px;
+            background: rgba(255,255,255,0.7);
+        }
+
+        .connector-horizontal::before { left: -1.5px; }
+        .connector-horizontal::after { right: -1.5px; }
+
+        .branches {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            width: 100%;
+            position: relative;
+            margin-top: 60px;
+        }
+
+        .branch {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 300px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            transition: transform 0.3s, box-shadow 0.3s;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        .branch:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+        }
+
+        .branch-title {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 1.1em;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 18px;
+            box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .sub-pages {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .sub-page {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.95em;
+            text-align: center;
+            color: #495057;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .sub-page::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            transform: scaleY(0);
+            transition: transform 0.3s;
+        }
+
+        .sub-page:hover {
+            background: #e3f2fd;
+            border-color: #4facfe;
+            color: #1976d2;
+            transform: translateX(5px);
+        }
+
+        .sub-page:hover::before { transform: scaleY(1); }
+
+        /* Кнопка "Прикол" */
+        .fun-button-wrap {
+            margin-top: 60px;
+            text-align: center;
+            animation: fadeInUp 1s ease;
+        }
+
+        .fun-button {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ffa500 50%, #ff6b6b 100%);
+            background-size: 200% 200%;
+            color: white;
+            border: none;
+            padding: 18px 55px;
+            font-size: 1.4em;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5);
+            transition: all 0.3s;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-family: inherit;
+            animation: funPulse 2s infinite, gradientShift 3s infinite;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .fun-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(255, 107, 107, 0.7);
+        }
+
+        .fun-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .fun-button::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes funPulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(255, 107, 107, 0.5); }
+            50% { box-shadow: 0 10px 40px rgba(255, 165, 0, 0.8); }
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Модальные окна */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: white;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: slideUp 0.4s ease;
+            position: relative;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 20px 20px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 { font-size: 1.6em; font-weight: 700; }
+
+        .modal-close {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.4em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-close:hover {
+            background: rgba(255,255,255,0.4);
+            transform: rotate(90deg);
+        }
+
+        .modal-body { padding: 30px; }
+
+        /* Видео */
+        .video-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .video-wrap iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+            min-width: 140px;
+        }
+
+        .stat-card .number {
+            font-size: 2em;
+            font-weight: 800;
+            color: #4facfe;
+            display: block;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            color: #6c757d;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        .stat-card.boys .number { color: #4facfe; }
+        .stat-card.girls .number { color: #f5576c; }
+        .stat-card.teachers .number { color: #9b59b6; }
+
+        .students-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .student-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border-left: 4px solid #4facfe;
+            transition: all 0.3s;
+        }
+
+        .student-card:hover {
+            background: #e3f2fd;
+            transform: translateX(5px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+
+        .student-card.girl { border-left-color: #f5576c; }
+        .student-card.girl:hover { background: #fce4ec; }
+
+        .student-number {
+            background: #4facfe;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .student-card.girl .student-number { background: #f5576c; }
+
+        .student-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95em;
+        }
+
+        .teachers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .teacher-card {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 12px;
+            border-left: 5px solid #9b59b6;
+            transition: all 0.3s;
+        }
+
+        .teacher-card:hover {
+            background: #f3e8fd;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(155, 89, 182, 0.15);
+        }
+
+        .teacher-avatar {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        .teacher-info { flex: 1; }
+
+        .teacher-name {
+            font-weight: 700;
+            color: #333;
+            font-size: 1.05em;
+            margin-bottom: 4px;
+        }
+
+        .teacher-subjects {
+            font-size: 0.9em;
+            color: #6c757d;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .subject-tag {
+            background: #e8f4fd;
+            color: #1976d2;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .subject-tag.multi {
+            background: #f3e8fd;
+            color: #8e44ad;
+        }
+
+        .gallery-note {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            color: #5d4037;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            aspect-ratio: 4/3;
+            background: #f0f0f0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s;
+        }
+
+        .gallery-item:hover img { transform: scale(1.1); }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .lightbox.active { display: flex; }
+
+        .lightbox img {
+            max-width: 100%;
+            max-height: 90vh;
+            object-fit: contain;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+            animation: zoomIn 0.3s ease;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 1.8em;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lightbox-close:hover {
+            background: rgba(255,255,255,0.4);
+            transform: rotate(90deg);
+        }
+
+        .dev-content {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .dev-icon {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .dev-title {
+            font-size: 2em;
+            font-weight: 800;
+            color: #4facfe;
+            margin-bottom: 15px;
+        }
+
+        .dev-text {
+            font-size: 1.1em;
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(50px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 { font-size: 2.2em; }
+            .header .class-badge { font-size: 1.4em; }
+            .connector-horizontal { display: none; }
+            .branches {
+                flex-direction: column;
+                align-items: center;
+                gap: 25px;
+                margin-top: 40px;
+            }
+            .branch { width: 100%; max-width: 350px; }
+            .main-node { font-size: 1.1em; padding: 15px 30px; }
+            .modal-header h2 { font-size: 1.2em; }
+            .modal-body { padding: 20px 15px; }
+            .students-grid { grid-template-columns: 1fr; }
+            .teacher-card { flex-direction: column; text-align: center; }
+            .teacher-subjects { justify-content: center; }
+            .gallery-grid { grid-template-columns: 1fr 1fr; }
+            .fun-button { font-size: 1.1em; padding: 15px 35px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Наш класс</h1>
+        <div class="class-badge">9 "А"</div>
+    </div>
+
+    <div class="graph">
+        <div class="main-node">Главная страница</div>
+        <div class="connector-vertical"></div>
+        <div class="connector-horizontal"></div>
+
+        <div class="branches">
+            <div class="branch">
+                <div class="branch-title">Наш коллектив</div>
+                <div class="sub-pages">
+                    <div class="sub-page" onclick="openStudents()">Список учеников</div>
+                    <div class="sub-page" onclick="openDev('Актив класса')">Актив класса</div>
+                    <div class="sub-page" onclick="openTeachers()">Наши учителя</div>
+                </div>
+            </div>
+
+            <div class="branch">
+                <div class="branch-title">Жизнь класса</div>
+                <div class="sub-pages">
+                    <div class="sub-page" onclick="openGallery()">Фотогалерея</div>
+                    <div class="sub-page" onclick="openDev('Наши достижения')">Наши достижения</div>
+                    <div class="sub-page" onclick="openDev('Проекты и мероприятия')">Проекты и мероприятия</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- КНОПКА "ПРИКОЛ" -->
+    <div class="fun-button-wrap">
+        <button class="fun-button" onclick="openFun()">🎉 Прикол 🎉</button>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: УЧЕНИКИ -->
+    <div class="modal-overlay" id="studentsModal" onclick="closeOnOverlay(event, 'studentsModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Список учеников 9 "А"</h2>
+                <button class="modal-close" onclick="closeModal('studentsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats">
+                    <div class="stat-card">
+                        <span class="number">28</span>
+                        <span class="label">Всего учеников</span>
+                    </div>
+                    <div class="stat-card boys">
+                        <span class="number">19</span>
+                        <span class="label">Мальчиков</span>
+                    </div>
+                    <div class="stat-card girls">
+                        <span class="number">9</span>
+                        <span class="label">Девочек</span>
+                    </div>
+                </div>
+                <div class="students-grid" id="studentsGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: УЧИТЕЛЯ -->
+    <div class="modal-overlay" id="teachersModal" onclick="closeOnOverlay(event, 'teachersModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Наши учителя</h2>
+                <button class="modal-close" onclick="closeModal('teachersModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="stats">
+                    <div class="stat-card teachers">
+                        <span class="number" id="teachersCount">0</span>
+                        <span class="label">Учителей</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="number" id="subjectsCount">0</span>
+                        <span class="label">Предметов</span>
+                    </div>
+                </div>
+                <div class="teachers-list" id="teachersList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ГАЛЕРЕЯ -->
+    <div class="modal-overlay" id="galleryModal" onclick="closeOnOverlay(event, 'galleryModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Фотогалерея</h2>
+                <button class="modal-close" onclick="closeModal('galleryModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="gallery-note">
+                    <strong>Нажмите на фото</strong>, чтобы увеличить его.
+                </div>
+                <div class="gallery-grid" id="galleryGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: В РАЗРАБОТКЕ -->
+    <div class="modal-overlay" id="devModal" onclick="closeOnOverlay(event, 'devModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="devTitle">В разработке</h2>
+                <button class="modal-close" onclick="closeModal('devModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="dev-content">
+                    <div class="dev-icon">🚧</div>
+                    <div class="dev-title">В разработке</div>
+                    <div class="dev-text">
+                        Раздел <strong id="devSectionName">«...»</strong> находится в разработке.<br>
+                        Скоро здесь появится информация!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО: ПРИКОЛ (ВИДЕО) -->
+    <div class="modal-overlay" id="funModal" onclick="closeOnOverlay(event, 'funModal')">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>🎉 Прикол 🎉</h2>
+                <button class="modal-close" onclick="closeFun()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="video-wrap">
+                    <iframe id="funVideo" src="" allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЛАЙТБОКС -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <img id="lightboxImg" src="" alt="Фото" onclick="event.stopPropagation()">
+    </div>
+
+    <script>
+        const students = [
+            { name: "Афоньшин Дмитрий", gender: "М" },
+            { name: "Буклов Илья", gender: "М" },
+            { name: "Веселов Егор", gender: "М" },
+            { name: "Второв Семён", gender: "М" },
+            { name: "Денисов Кирилл", gender: "М" },
+            { name: "Ельцов Егор", gender: "М" },
+            { name: "Кадильников Егор", gender: "М" },
+            { name: "Кержаков Никита", gender: "М" },
+            { name: "Кочнев Евгений", gender: "М" },
+            { name: "Куншин Павел", gender: "М" },
+            { name: "Куликов Антон", gender: "М" },
+            { name: "Лебедев Иван", gender: "М" },
+            { name: "Лесников Кирилл", gender: "М" },
+            { name: "Логинов Максим", gender: "М" },
+            { name: "Новиков Александр", gender: "М" },
+            { name: "Новиков Никита", gender: "М" },
+            { name: "Поляшов Артемий", gender: "М" },
+            { name: "Реунов Максим", gender: "М" },
+            { name: "Чихладзе Давид", gender: "М" },
+            { name: "Божкова Полина", gender: "Ж" },
+            { name: "Лебедева Виктория", gender: "Ж" },
+            { name: "Малышева Людмила", gender: "Ж" },
+            { name: "Пухова Марина", gender: "Ж" },
+            { name: "Савина Виктория", gender: "Ж" },
+            { name: "Селезнева Анастасия", gender: "Ж" },
+            { name: "Скопина Анастасия", gender: "Ж" },
+            { name: "Соловьева Светлана", gender: "Ж" },
+            { name: "Соловьёва Алёна", gender: "Ж" }
+        ];
+
+        function renderStudents() {
+            const grid = document.getElementById('studentsGrid');
+            grid.innerHTML = '';
+            students.forEach((student, index) => {
+                const card = document.createElement('div');
+                card.className = 'student-card' + (student.gender === 'Ж' ? ' girl' : '');
+                card.innerHTML = `
+                    <div class="student-number">${index + 1}</div>
+                    <div class="student-name">${student.name}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        const teachers = [
+            { name: "Иванова Елена Петровна", subjects: ["Русский язык", "Литература"] },
+            { name: "Петров Сергей Николаевич", subjects: ["Математика", "Алгебра", "Геометрия"] },
+            { name: "Смирнова Ольга Владимировна", subjects: ["Английский язык"] },
+            { name: "Кузнецов Андрей Михайлович", subjects: ["Физика", "Астрономия"] },
+            { name: "Соколова Мария Ивановна", subjects: ["Химия", "Биология"] },
+            { name: "Попов Дмитрий Александрович", subjects: ["История", "Обществознание"] },
+            { name: "Лебедева Наталья Сергеевна", subjects: ["География"] },
+            { name: "Новиков Игорь Валентинович", subjects: ["Информатика", "Технология"] },
+            { name: "Морозова Анна Дмитриевна", subjects: ["Физическая культура", "ОБЖ"] },
+            { name: "Волкова Екатерина Андреевна", subjects: ["Изобразительное искусство", "Музыка"] }
+        ];
+
+        function renderTeachers() {
+            const list = document.getElementById('teachersList');
+            list.innerHTML = '';
+            let totalSubjects = 0;
+            teachers.forEach(teacher => {
+                totalSubjects += teacher.subjects.length;
+                const card = document.createElement('div');
+                card.className = 'teacher-card';
+                const initials = teacher.name.split(' ').slice(0, 2).map(n => n[0]).join('');
+                const subjectTags = teacher.subjects.map(subj => 
+                    `<span class="subject-tag ${teacher.subjects.length > 1 ? 'multi' : ''}">${subj}</span>`
+                ).join('');
+                card.innerHTML = `
+                    <div class="teacher-avatar">${initials}</div>
+                    <div class="teacher-info">
+                        <div class="teacher-name">${teacher.name}</div>
+                        <div class="teacher-subjects">${subjectTags}</div>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+            document.getElementById('teachersCount').textContent = teachers.length;
+            document.getElementById('subjectsCount').textContent = totalSubjects;
+        }
+
+        const photos = [
+            { id: "1To2m5F_603_KAqfFPJJLgiAX0xwzQ2MN" },
+            { id: "11cChwbl0CbJSbH--dhd823Ho5j_9ai5C" },
+            { id: "1ThMqK1ALYUij6EwkLPM45P3jA_yVVHLL" },
+            { id: "1prHdUJSbFJkBkNdo00nStQDcSlDWi4Bw" },
+            { id: "1018Yb4fL_tYyGZHlXh5pQ4acbwFPtU80" }
+        ];
+
+        function getPhotoUrl(id, size = 800) {
+            return `https://drive.google.com/thumbnail?id=${id}&sz=w${size}`;
+        }
+
+        function renderGallery() {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+            photos.forEach(photo => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.onclick = () => openLightbox(getPhotoUrl(photo.id, 1600));
+                item.innerHTML = `<img src="${getPhotoUrl(photo.id, 600)}" alt="Фото" loading="lazy">`;
+                grid.appendChild(item);
+            });
+        }
+
+        function openLightbox(url) {
+            document.getElementById('lightboxImg').src = url;
+            document.getElementById('lightbox').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function openStudents() {
+            renderStudents();
+            document.getElementById('studentsModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openTeachers() {
+            renderTeachers();
+            document.getElementById('teachersModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openGallery() {
+            renderGallery();
+            document.getElementById('galleryModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function openDev(sectionName) {
+            document.getElementById('devSectionName').textContent = '«' + sectionName + '»';
+            document.getElementById('devModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // ========== ПРИКОЛ (ВИДЕО) ==========
+        function openFun() {
+            const iframe = document.getElementById('funVideo');
+            // Ссылка на видео VK: video-127960182_456239022
+            // ID: -127960182, video: 456239022
+            iframe.src = 'https://vk.com/video_ext.php?oid=-127960182&id=456239022&hd=2&autoplay=1';
+            document.getElementById('funModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeFun() {
+            document.getElementById('funModal').classList.remove('active');
+            document.getElementById('funVideo').src = ''; // останавливаем видео
+            document.body.style.overflow = '';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function closeOnOverlay(event, id) {
+            if (event.target.id === id) {
+                if (id === 'funModal') {
+                    closeFun();
+                } else {
+                    closeModal(id);
+                }
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.active').forEach(m => {
+                    m.classList.remove('active');
+                });
+                document.getElementById('lightbox').classList.remove('active');
+                document.getElementById('funVideo').src = '';
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
+
+</body>
+</html>
